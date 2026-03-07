@@ -3,7 +3,12 @@ const Schema = mongoose.Schema
 
 const secretSchema = new Schema({
     msg : {type:String, required: true} ,
-},{timestamps:true})
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        expires: 10
+    }
+})
 
 const Secret = mongoose.model('Secret', secretSchema)
 

@@ -2,14 +2,15 @@ const express= require('express')
 const cors = require('cors')
 const app = express()
 require('dotenv').config()
-
 const mongoose = require('mongoose')
+
+const Secret = require ('./schema.js')
 
 
 const port = process.env.PORT
 const mongoUri = process.env.MONGO_URI
 
-const Secret = require ('./schema.js')
+
 
 mongoose.connect(mongoUri)
     .then(

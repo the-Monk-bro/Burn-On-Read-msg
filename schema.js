@@ -6,7 +6,7 @@ const secretSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: 10
+        expires: '24h'
     }
 })
 

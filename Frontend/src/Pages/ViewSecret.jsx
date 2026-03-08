@@ -6,16 +6,23 @@ const ViewSecret = () => {
   const [secret, setSecret] = useState(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isExploded, setIsExploded] = useState(false);
+  const [isInvalid,setIsInvalid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleReveal = async () => {
     setIsLoading(true);
     
     try {
+
+      const res = await fetch(`http://localhost:3000/secret/${id}`);
+      const result = await res.json();
+
+      if (result.msg =='X') setIsExploded(true);
+      else if (result.msg =='I') setIsInvalid(true);
+
       setTimeout(() => {
-        
-        const simulatedSecret = "This is the super secret message that will self-destruct!";
-        setSecret(simulatedSecret);
+        //const simulatedSecret = "This is the super secret message that will self-destruct!";
+        setSecret(result.msg);
         setIsRevealed(true);
         setIsLoading(false);
       }, 800);
@@ -28,7 +35,7 @@ const ViewSecret = () => {
   };
 
   
-  if (isExploded) {
+  if (isExploded || isInvalid) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center space-y-4">
@@ -37,10 +44,16 @@ const ViewSecret = () => {
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-slate-800">Message Exploded</h2>
-          <p className="text-slate-600">
-            This secret has already been viewed and permanently deleted from our servers, or the link is invalid.
-          </p>
+          
+          {isInvalid && <h2 className="text-2xl font-bold text-slate-800">Invalid Link</h2>}
+          {isInvalid && <p className="text-slate-600">
+            The id in this link is not of correct format.
+          </p>}
+
+          {isExploded && <h2 className="text-2xl font-bold text-slate-800">Message Exploded</h2>}
+          {isExploded && <p className="text-slate-600">
+            This secret has already been viewed and permanently deleted from our servers.
+          </p>}
         </div>
       </div>
     );

@@ -3,13 +3,29 @@ import React, { useState } from "react";
 const SecretInput = ({ setGeneratedLink }) => {
   const [message, setMessage] = useState("");
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!message.trim()) return alert("Please enter a message!");
 
-    const uniqueId = Math.random().toString(36).substring(2, 9);
-    const newUrl = `${window.location.origin}/secret/${uniqueId}`;
-    
-    setGeneratedLink(newUrl);
+    try{
+      const res = await fetch("http://localhost:3000/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({msg: message})
+      });
+
+      const result = await res.json();
+
+      //const uniqueId = Math.random().toString(36).substring(2, 9);
+      //const newUrl = `${window.location.origin}/secret/${uniqueId}`;
+
+      setGeneratedLink(result.link);
+
+    } catch (error){
+      console.error("Error fetching secret:", error)
+    }
+
   };
 
   return (

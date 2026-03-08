@@ -28,7 +28,7 @@ app.post('/create', async(req,res)=>{
     const {msg} = req.body
     const secret = await Secret.create({msg})
     console.log (secret)
-    const link = `http://localhost:3000/secret/${secret._id}`
+    const link = `http://127.0.0.1:5500/demoRead.html?id=${secret._id}`
     res.status(201).json({msg : "Secret message received", secret: secret, link : link})
 })
 
@@ -36,15 +36,15 @@ app.get('/secret/:id', async(req,res)=>{
     try {
         const secret = await Secret.findByIdAndDelete(req.params.id)
         if (!secret) {
-            return res.status(404).send('Already exploded')
+            return res.status(404).json({msg: 'Already exploded'})
         }
-        res.send(secret.msg)
+        res.json({msg: secret.msg})
     } catch (error) {
         if (error.name === "CastError") {
-        return res.status(400).send("Invalid link") 
+        return res.status(400).json({msg: "Invalid link"}) 
         }
 
-    res.status(500).send("Server error" )
+        res.status(500).json({msg: error.name})
     }
 })
   

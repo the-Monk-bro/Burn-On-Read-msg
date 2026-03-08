@@ -41,7 +41,7 @@ const SecretInput = ({ setGeneratedLink }) => {
       
       <div className="flex justify-between text-sm text-slate-500">
         <span>Burn after reading</span>
-        <span>Expires in 1 hour</span>
+        <span>Expires in 24 hours</span>
       </div>
 
       <button

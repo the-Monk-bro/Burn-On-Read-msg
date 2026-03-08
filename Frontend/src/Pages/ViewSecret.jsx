@@ -5,9 +5,10 @@ const ViewSecret = () => {
   const { id } = useParams(); 
   const [secret, setSecret] = useState(null);
   const [isRevealed, setIsRevealed] = useState(false);
-  const [isExploded, setIsExploded] = useState(false);
-  const [isInvalid,setIsInvalid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [errMsg,setErrMsg] = useState("");
+  const [errDesc, setErrDesc] = useState("");
 
   const handleReveal = async () => {
     setIsLoading(true);
@@ -17,11 +18,13 @@ const ViewSecret = () => {
       const res = await fetch(`http://localhost:3000/secret/${id}`);
       const result = await res.json();
 
-      if (result.msg =='X') setIsExploded(true);
-      else if (result.msg =='I') setIsInvalid(true);
-
+      if (result.err){
+        setIsError(true);
+        setErrMsg(result.msg);
+        setErrDesc(result.desc);
+      }
+  
       setTimeout(() => {
-        //const simulatedSecret = "This is the super secret message that will self-destruct!";
         setSecret(result.msg);
         setIsRevealed(true);
         setIsLoading(false);
@@ -35,7 +38,7 @@ const ViewSecret = () => {
   };
 
   
-  if (isExploded || isInvalid) {
+  if (isError) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center space-y-4">
@@ -45,15 +48,8 @@ const ViewSecret = () => {
             </svg>
           </div>
           
-          {isInvalid && <h2 className="text-2xl font-bold text-slate-800">Invalid Link</h2>}
-          {isInvalid && <p className="text-slate-600">
-            The id in this link is not of correct format.
-          </p>}
-
-          {isExploded && <h2 className="text-2xl font-bold text-slate-800">Message Exploded</h2>}
-          {isExploded && <p className="text-slate-600">
-            This secret has already been viewed and permanently deleted from our servers.
-          </p>}
+          <h2 className="text-2xl font-bold text-slate-800">{errMsg}</h2>
+          <p className="text-slate-600">{errDesc}</p>
         </div>
       </div>
     );

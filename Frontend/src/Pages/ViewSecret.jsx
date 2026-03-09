@@ -2,13 +2,24 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 const ViewSecret = () => {
+  
   const { id } = useParams(); 
   const [secret, setSecret] = useState(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
   const [isError, setIsError] = useState(false);
   const [errMsg,setErrMsg] = useState("");
   const [errDesc, setErrDesc] = useState("");
+
+  function fromBase64URL(str) {
+  str = str.replace(/-/g, "+").replace(/_/g, "/")
+  while (str.length % 4) {
+    str += "="
+  }
+  const binary = atob(str)
+  return Uint8Array.from(binary, c => c.charCodeAt(0))
+  }
 
   const handleReveal = async () => {
     setIsLoading(true);
@@ -23,17 +34,39 @@ const ViewSecret = () => {
         setErrMsg(result.msg);
         setErrDesc(result.desc);
       }
+
+      
+      else{
+        //decryptong msg
+        const key = window.location.hash.substring(1);
+
+        const cryptoKey = await crypto.subtle.importKey(
+          "raw", fromBase64URL(key) , "AES-GCM", false, ["decrypt"]
+        );
+
+        const ciphertext = new Uint8Array(result.ciphertext);
+        const iv = new Uint8Array(result.iv);
+        const deciphertext = await crypto.subtle.decrypt(
+          {name:"AES-GCM", iv}, cryptoKey, ciphertext
+        );
+
+        const decoded = new TextDecoder().decode(deciphertext);
+
+      
+        //.....................
   
-      setTimeout(() => {
-        setSecret(result.msg);
-        setIsRevealed(true);
-        setIsLoading(false);
-      }, 800);
+        setTimeout(() => {
+          setSecret(decoded);
+          setIsRevealed(true);
+          setIsLoading(false);
+        }, 800);
+      }
 
     } catch (error) {
       console.error("Error fetching secret:", error);
-      setIsExploded(true);
+      alert("Cannot connect to the server. Server maybe down.");
       setIsLoading(false);
+      setIsRevealed(false);
     }
   };
 

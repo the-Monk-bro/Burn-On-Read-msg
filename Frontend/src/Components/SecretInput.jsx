@@ -1,10 +1,37 @@
 import React, { useState } from "react";
 
 const SecretInput = ({ setGeneratedLink }) => {
+
   const [message, setMessage] = useState("");
+  
+  
+  function toBase64URL(uint8) {
+  let base64 = btoa(String.fromCharCode(...uint8))
+
+  return base64
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "")
+  }
 
   const handleGenerate = async () => {
     if (!message.trim()) return alert("Please enter a message!");
+
+    //Encrypting the message
+    const key = crypto.getRandomValues(new Uint8Array(32));
+    const iv =crypto.getRandomValues(new Uint8Array(12));
+    const encoded = new TextEncoder().encode(message);
+
+    const cryptoKey = await crypto.subtle.importKey(
+      "raw", key , "AES-GCM", false, ["encrypt"]
+    )
+    const ciphertext  = await crypto.subtle.encrypt(
+      {name:"AES-GCM", iv:iv}, cryptoKey, encoded
+    )
+
+    const ciphertextArray = Array.from(new Uint8Array(ciphertext));
+    const ivArray = Array.from(iv);
+    //......................................
 
     try{
       const res = await fetch("http://localhost:3000/create", {
@@ -12,18 +39,16 @@ const SecretInput = ({ setGeneratedLink }) => {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({msg: message})
+        body: JSON.stringify({ciphertext: ciphertextArray, iv: ivArray})
       });
 
       const result = await res.json();
 
-      //const uniqueId = Math.random().toString(36).substring(2, 9);
-      //const newUrl = `${window.location.origin}/secret/${uniqueId}`;
-
-      setGeneratedLink(result.link);
+      setGeneratedLink(`${result.link}#${toBase64URL(key)}`);
 
     } catch (error){
-      console.error("Error fetching secret:", error)
+      console.error("Error creating secret:", error);
+      alert("Cannot connect to the server. Server maybe down.");
     }
 
   };

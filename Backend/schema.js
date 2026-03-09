@@ -2,7 +2,8 @@ const mongoose= require('mongoose')
 const Schema = mongoose.Schema
 
 const secretSchema = new Schema({
-    msg : {type:String, required: true} ,
+    ciphertext : Buffer ,
+    iv: Buffer,
     createdAt: {
         type: Date,
         default: Date.now,

@@ -22,11 +22,11 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors())
 
 app.post('/create', async(req,res)=>{
-    const {msg} = req.body
-    const secret = await Secret.create({msg})
+    const {ciphertext, iv} = req.body
+    const secret = await Secret.create({ciphertext: Buffer.from(ciphertext) , iv: Buffer.from(iv) })
     console.log("\nNew secret created:")
     console.log (secret)
-    const link = `localhost:5173/secret/${secret._id}`
+    const link = `http://localhost:5173/secret/${secret._id}`
     res.status(201).json({msg : "Secret message received",secret: secret, link : link})
 })
 
@@ -36,7 +36,7 @@ app.get('/secret/:id', async(req,res)=>{
         if (!secret) {
             return res.status(404).json({msg: "Secret Exploded", err:true, desc:"This secret has already been viewed and permanently deleted from our servers."})
         }
-        res.json({msg: secret.msg, err:false})
+        res.json({ciphertext: Array.from(secret.ciphertext), iv: Array.from(secret.iv), err:false})
     } catch (error) {
         if (error.name === "CastError") {
         return res.status(400).json({msg: "Invalid Link", err:true, desc: "The secret id in this link is not of correct format."}) 

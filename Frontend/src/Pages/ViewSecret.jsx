@@ -26,7 +26,7 @@ const ViewSecret = () => {
     
     try {
 
-      const res = await fetch(`http://localhost:3000/secret/${id}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/secret/${id}`);
       const result = await res.json();
 
       if (result.err){

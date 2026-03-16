@@ -7,6 +7,13 @@ This project demonstrates how to build a **temporary messaging platform** where 
 
 ---
 
+## 🌐 Live Demo
+
+🔗 **Try the App Here:**  
+https://burn-on-read-msg.vercel.app/
+
+---
+
 ## Features
 
 - Generate a **unique secret link** for every message
@@ -21,19 +28,23 @@ This project demonstrates how to build a **temporary messaging platform** where 
 ## 🛠 Tech Stack
 
 ### Frontend
+
 - React.js
 - HTML
 - CSS
 - JavaScript
 
 ### Backend
+
 - Node.js
 - Express.js
 
 ### Database
+
 - MongoDB
 
 ### Tools & Libraries
+
 - Mongoose
 - dotenv
 
@@ -161,8 +172,3 @@ Message Displayed Once
       ↓
 Message Permanently Deleted
 ```
-
-
- 
-
- 

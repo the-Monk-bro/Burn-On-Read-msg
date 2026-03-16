@@ -26,7 +26,7 @@ app.post('/create', async(req,res)=>{
     const secret = await Secret.create({ciphertext: Buffer.from(ciphertext) , iv: Buffer.from(iv) })
     console.log("\nNew secret created:")
     console.log (secret)
-    const link = `http://localhost:5173/secret/${secret._id}`
+    const link = `https://burn-on-read-msg.vercel.app/secret/${secret._id}`
     res.status(201).json({msg : "Secret message received",secret: secret, link : link})
 })
 

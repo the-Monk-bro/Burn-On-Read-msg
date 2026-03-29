@@ -8,6 +8,7 @@ const Secret = require ('./schema.js')
 
 const port = process.env.PORT
 const mongoUri = process.env.MONGO_URI
+const base_url = process.env.BASE_URL
 
 mongoose.connect(mongoUri)
     .then(
@@ -26,7 +27,7 @@ app.post('/create', async(req,res)=>{
     const secret = await Secret.create({ciphertext: Buffer.from(ciphertext) , iv: Buffer.from(iv) })
     console.log("\nNew secret created:")
     console.log (secret)
-    const link = `https://burn-on-read-msg.vercel.app/secret/${secret._id}`
+    const link = `${base_url}/${secret._id}`
     res.status(201).json({msg : "Secret message received",secret: secret, link : link})
 })
 

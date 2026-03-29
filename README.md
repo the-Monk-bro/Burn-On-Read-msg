@@ -1,4 +1,4 @@
-# 🔥 Burn-On-Read Message
+# 🔥 Secret Share
 
 A **secure ephemeral messaging web application** that allows users to send secret messages through a generated link.  
 The message **self-destructs immediately after being read**, ensuring privacy and preventing message persistence.
@@ -19,6 +19,7 @@ https://burn-on-read-msg.vercel.app/
 - Generate a **unique secret link** for every message
 - **Burn-on-read functionality** — message deletes after being opened
 - **Automatic expiration after 24 hours**
+- **End-to-end encryption** — server cannot read the message
 - Easy **copy and share link workflow**
 - Lightweight and fast interface
 - Fully responsive UI
@@ -128,7 +129,7 @@ Start the frontend server:
 
 ```bash
 cd frontend
-npm start
+npm run dev
 ```
 
 The application should now be running locally.
@@ -138,11 +139,11 @@ The application should now be running locally.
 ## 🧠 How It Works
 
 1. User writes a secret message.
-2. The backend stores the message in **MongoDB** with a unique ID.
+2. The backend stores the message in **MongoDB** with a unique ID in encrypted format.
 3. A **unique secret link** is generated.
 4. The sender shares the link with the recipient.
 5. When the recipient opens the link:
-   - The message is fetched from the database.
+   - The message is fetched from the database and decrypted.
    - The message is **immediately deleted after being displayed**.
 6. If the message is not opened within **24 hours**, it is automatically deleted using a **TTL index** in MongoDB.
 
@@ -152,6 +153,7 @@ The application should now be running locally.
 
 - Single-use secret links
 - Automatic message deletion
+- End-to-end encrytion
 - MongoDB TTL index for expiration
 - No permanent storage of messages
 

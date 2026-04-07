@@ -7,10 +7,21 @@ const ViewSecret = () => {
   const [secret, setSecret] = useState(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [decryptedType, setDecryptedType] = useState("text");
+  const [fileMeta, setFileMeta] = useState({ fileName: "", mimeType: "", fileSize: 0 });
+  const [downloadUrl, setDownloadUrl] = useState("");
   
   const [isError, setIsError] = useState(false);
   const [errMsg,setErrMsg] = useState("");
   const [errDesc, setErrDesc] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+      }
+    };
+  }, [downloadUrl]);
 
   function fromBase64URL(str) {
   str = str.replace(/-/g, "+").replace(/_/g, "/")
@@ -33,12 +44,16 @@ const ViewSecret = () => {
         setIsError(true);
         setErrMsg(result.msg);
         setErrDesc(result.desc);
+        setIsLoading(false);
+        return;
       }
 
       
       else{
-        //decryptong msg
         const key = window.location.hash.substring(1);
+        if (!key) {
+          throw new Error("Missing decryption key in URL.");
+        }
 
         const cryptoKey = await crypto.subtle.importKey(
           "raw", fromBase64URL(key) , "AES-GCM", false, ["decrypt"]
@@ -50,13 +65,26 @@ const ViewSecret = () => {
           {name:"AES-GCM", iv}, cryptoKey, ciphertext
         );
 
-        const decoded = new TextDecoder().decode(deciphertext);
+        const decryptedBytes = new Uint8Array(deciphertext);
+        const incomingType = result.secretType || "text";
 
-      
-        //.....................
-  
         setTimeout(() => {
-          setSecret(decoded);
+          setDecryptedType(incomingType);
+          if (incomingType === "file") {
+            const mimeType = result.mimeType || "application/octet-stream";
+            const blob = new Blob([decryptedBytes], { type: mimeType });
+            const objectUrl = URL.createObjectURL(blob);
+            setDownloadUrl(objectUrl);
+            setFileMeta({
+              fileName: result.fileName || "secret-file",
+              mimeType,
+              fileSize: result.fileSize || decryptedBytes.length
+            });
+            setSecret(null);
+          } else {
+            const decoded = new TextDecoder().decode(deciphertext);
+            setSecret(decoded);
+          }
           setIsRevealed(true);
           setIsLoading(false);
         }, 800);
@@ -64,7 +92,9 @@ const ViewSecret = () => {
 
     } catch (error) {
       console.error("Error fetching secret:", error);
-      alert("Cannot connect to the server. Server maybe down.");
+      setIsError(true);
+      setErrMsg("Unable to decrypt secret");
+      setErrDesc("The link may be incomplete, invalid, or already used.");
       setIsLoading(false);
       setIsRevealed(false);
     }
@@ -117,9 +147,37 @@ const ViewSecret = () => {
             
             <div className={`transition-all duration-1000 ease-out transform ${isRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               <div className="p-6 bg-slate-100 rounded-lg text-left border border-slate-200 shadow-inner">
-                <p className="text-slate-700 whitespace-pre-wrap font-mono text-lg">
-                  {secret}
-                </p>
+                {decryptedType === "file" ? (
+                  <div className="space-y-4">
+                    <p className="text-slate-700 text-sm">
+                      File: <span className="font-semibold">{fileMeta.fileName}</span> ({Math.ceil((fileMeta.fileSize || 0) / 1024)} KB)
+                    </p>
+
+                    {fileMeta.mimeType?.startsWith("image/") && downloadUrl && (
+                      <img src={downloadUrl} alt={fileMeta.fileName} className="max-h-96 mx-auto rounded-md border border-slate-200" />
+                    )}
+
+                    {fileMeta.mimeType?.startsWith("video/") && downloadUrl && (
+                      <video src={downloadUrl} controls className="max-h-96 w-full rounded-md border border-slate-200" />
+                    )}
+
+                    {fileMeta.mimeType?.startsWith("audio/") && downloadUrl && (
+                      <audio src={downloadUrl} controls className="w-full" />
+                    )}
+
+                    <a
+                      href={downloadUrl}
+                      download={fileMeta.fileName}
+                      className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Download File
+                    </a>
+                  </div>
+                ) : (
+                  <p className="text-slate-700 whitespace-pre-wrap font-mono text-lg">
+                    {secret}
+                  </p>
+                )}
               </div>
             </div>
 

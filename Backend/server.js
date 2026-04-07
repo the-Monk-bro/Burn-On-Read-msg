@@ -23,12 +23,34 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors())
 
 app.post('/create', async(req,res)=>{
-    const {ciphertext, iv} = req.body
-    const secret = await Secret.create({ciphertext: Buffer.from(ciphertext) , iv: Buffer.from(iv) })
-    console.log("\nNew secret created:")
-    console.log (secret)
-    const link = `${base_url}/${secret._id}`
-    res.status(201).json({msg : "Secret message received",secret: secret, link : link})
+    try {
+        const {
+            ciphertext,
+            iv,
+            secretType = "text",
+            fileName = null,
+            mimeType = null,
+            fileSize = null
+        } = req.body
+
+        if (!Array.isArray(ciphertext) || !Array.isArray(iv)) {
+            return res.status(400).json({ msg: "Invalid payload", err: true, desc: "ciphertext and iv are required arrays." })
+        }
+
+        const secret = await Secret.create({
+            ciphertext: Buffer.from(ciphertext),
+            iv: Buffer.from(iv),
+            secretType,
+            fileName,
+            mimeType,
+            fileSize
+        })
+
+        const link = `${base_url}/${secret._id}`
+        res.status(201).json({msg : "Secret message received",secret: secret, link : link})
+    } catch (error) {
+        res.status(500).json({msg:"Server Error", err:true, desc:"Sorry, the server is facing some issues in saving your secret."})
+    }
 })
 
 app.get('/secret/:id', async(req,res)=>{
@@ -37,7 +59,15 @@ app.get('/secret/:id', async(req,res)=>{
         if (!secret) {
             return res.status(404).json({msg: "Secret Exploded", err:true, desc:"This secret has already been viewed and permanently deleted from our servers."})
         }
-        res.json({ciphertext: Array.from(secret.ciphertext), iv: Array.from(secret.iv), err:false})
+        res.json({
+            ciphertext: Array.from(secret.ciphertext),
+            iv: Array.from(secret.iv),
+            secretType: secret.secretType || "text",
+            fileName: secret.fileName || null,
+            mimeType: secret.mimeType || null,
+            fileSize: secret.fileSize || null,
+            err:false
+        })
     } catch (error) {
         if (error.name === "CastError") {
         return res.status(400).json({msg: "Invalid Link", err:true, desc: "The secret id in this link is not of correct format."}) 
@@ -53,4 +83,3 @@ app.get('/secret/:id', async(req,res)=>{
 
 
   
-
